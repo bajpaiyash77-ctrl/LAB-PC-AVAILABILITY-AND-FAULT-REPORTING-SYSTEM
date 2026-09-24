@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="hero-panel mb-4 mb-lg-5">
+    <div>
+        <span class="eyebrow">SMART LAB MONITORING</span>
+        <h1>Find a working PC<br><span>without the guesswork.</span></h1>
+        <p>Check live lab PC status, choose an available system, or report a problem in a few clicks.</p>
+    </div>
+    <div class="hero-visual" aria-hidden="true">
+        <div class="monitor"><div class="screen"><span>LAB</span><b>PC</b></div><div class="stand"></div></div>
+        <div class="status-pill"><i></i> Lab status updated</div>
+    </div>
+</section>
+
+<div class="section-heading">
+    <div><span class="eyebrow">AT A GLANCE</span><h2>Lab availability</h2></div>
+    <span class="live-dot"><i></i> Live status</span>
+</div>
+
+<div class="row g-3 mb-4 mb-lg-5">
+    <div class="col-6 col-lg-3"><div class="stat-card total"><div class="stat-icon">▦</div><div><span>Total PCs</span><strong>{{ summary["total"] or 0 }}</strong></div></div></div>
+    <div class="col-6 col-lg-3"><div class="stat-card available"><div class="stat-icon">✓</div><div><span>Available</span><strong>{{ summary["available"] or 0 }}</strong></div></div></div>
+    <div class="col-6 col-lg-3"><div class="stat-card faulty"><div class="stat-icon">!</div><div><span>Faulty</span><strong>{{ summary["faulty"] or 0 }}</strong></div></div></div>
+    <div class="col-6 col-lg-3"><div class="stat-card maintenance"><div class="stat-icon">⚙</div><div><span>Maintenance</span><strong>{{ summary["maintenance"] or 0 }}</strong></div></div></div>
+</div>
+
+<div class="filter-card mb-4">
+    <div class="filter-title"><div class="filter-icon">⌕</div><div><strong>Find a PC</strong><span>Filter computers by lab or current status</span></div></div>
+    <form method="GET" class="row g-3 align-items-end">
+        <div class="col-md-5">
+            <label for="lab">Laboratory</label>
+            <select name="lab" id="lab" class="form-select">
+                <option value="">All Labs</option>
+                {% for lab in labs %}<option value="{{ lab['lab_name'] }}" {% if selected_lab == lab['lab_name'] %}selected{% endif %}>{{ lab['lab_name'] }}</option>{% endfor %}
+            </select>
+        </div>
+        <div class="col-md-5">
+            <label for="status">Status</label>
+            <select name="status" id="status" class="form-select">
+                <option value="">All Statuses</option>
+                <option value="Available" {% if selected_status == "Available" %}selected{% endif %}>Available</option>
+                <option value="Faulty" {% if selected_status == "Faulty" %}selected{% endif %}>Faulty</option>
+                <option value="In Use" {% if selected_status == "In Use" %}selected{% endif %}>In Use</option>
+                <option value="Under Maintenance" {% if selected_status == "Under Maintenance" %}selected{% endif %}>Under Maintenance</option>
+            </select>
+        </div>
+        <div class="col-md-2 d-grid"><button type="submit" class="btn btn-search">Apply Filters →</button></div>
+    </form>
+</div>
+
+<div class="section-heading pc-heading">
+    <div><span class="eyebrow">COMPUTER INVENTORY</span><h2>PC status</h2></div>
+    <span class="result-count">{{ pcs|length }} computer{% if pcs|length != 1 %}s{% endif %} shown</span>
+</div>
+
+<div class="row g-3 g-lg-4">
+{% for pc in pcs %}
+    <div class="col-md-6 col-xl-4">
+        <article class="pc-card {% if pc['status'] == 'Available' %}is-available{% elif pc['status'] == 'Faulty' %}is-faulty{% elif pc['status'] == 'Under Maintenance' %}is-maintenance{% endif %}">
+            <div class="pc-top"><div class="pc-number"><span class="pc-icon">▣</span><div><strong>{{ pc['pc_number'] }}</strong><small>{{ pc['lab_name'] }}</small></div></div>
+                {% if pc['status'] == 'Available' %}<span class="status-badge available">● Available</span>
+                {% elif pc['status'] == 'Faulty' %}<span class="status-badge faulty">● Faulty</span>
+                {% elif pc['status'] == 'In Use' %}<span class="status-badge inuse">● In Use</span>
+                {% elif pc['status'] == 'Under Maintenance' %}<span class="status-badge maintenance">● Maintenance</span>
+                {% else %}<span class="status-badge">● {{ pc['status'] }}</span>{% endif %}
+            </div>
+            <div class="pc-body">
+                {% if pc['status'] == 'Available' %}<div class="friendly-message success">✓ This computer is ready to use.</div>
+                {% elif pc['status'] == 'In Use' %}<div class="friendly-message info">◷ This computer is currently in use.</div>
+                {% elif pc['status'] == 'Faulty' %}<div class="friendly-message error">⚠ Please choose another computer if possible.</div>
+                {% elif pc['status'] == 'Under Maintenance' %}<div class="friendly-message warning">⚙ This computer is being serviced.</div>
+                {% endif %}
+                {% if pc['problem_description'] %}<div class="problem-box"><strong>Reported issue</strong><span>{{ pc['problem_description'] }}</span></div>{% endif %}
+                <small class="updated">Last updated · {{ pc['last_updated'] }}</small>
+            </div>
+            <div class="pc-footer"><a href="{{ url_for('report_fault', pc_id=pc['id']) }}" class="report-link">Report a problem <span>→</span></a></div>
+        </article>
+    </div>
+{% else %}
+    <div class="col-12"><div class="empty-state"><div>⌕</div><h3>No computers found</h3><p>Try changing the lab or status filter.</p></div></div>
+{% endfor %}
+</div>
+
+<div class="help-banner mt-4 mt-lg-5"><div class="help-icon">?</div><div><strong>Found a problem?</strong><span>Report it so the lab team can check and fix the computer.</span></div></div>
+{% endblock %}

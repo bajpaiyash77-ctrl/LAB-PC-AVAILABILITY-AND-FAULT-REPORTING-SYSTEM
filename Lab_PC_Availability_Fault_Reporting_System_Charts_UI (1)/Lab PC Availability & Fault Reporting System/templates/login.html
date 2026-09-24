@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="auth-wrap">
+ <div class="auth-card">
+  <div class="auth-logo">⌘</div>
+  <h1>Management Login</h1>
+  <p>Access LabDesk control panel to manage PC availability and resolve faults.</p>
+  <form method="POST">
+   <label>Username</label>
+   <input type="text" name="username" class="form-control" placeholder="Enter username" required>
+   <label class="mt-3">Password</label>
+   <input type="password" name="password" class="form-control" placeholder="Enter password" required>
+   <button class="btn btn-search w-100 mt-4">Sign In to Dashboard</button>
+  </form>
+  <div class="login-note">Default: <b>admin</b> / <b>admin123</b></div>
+ </div>
+</div>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="dashboard-head">
+ <div><span class="eyebrow dark">ADMIN PANEL</span><h1>Management Dashboard</h1><p>Monitor computers, update status and handle student fault reports.</p></div>
+</div>
+
+<div class="admin-card mt-4">
+<h3>🖥️ Update PC Status</h3>
+<div class="table-responsive">
+<table class="table align-middle modern-table">
+<thead><tr><th>PC</th><th>Lab</th><th>Status</th><th>Change</th><th>Problem</th><th></th></tr></thead>
+<tbody>
+{% for pc in pcs %}<tr><form method="POST" action="{{ url_for('update_pc', pc_id=pc.id) }}">
+<td><b>{{ pc.pc_number }}</b></td><td>{{ pc.lab_name }}</td><td><span class="status-badge">{{pc.status}}</span></td>
+<td><select name="status" class="form-select">{% for status in ["Available","Faulty","In Use","Under Maintenance"] %}<option {% if pc.status==status %}selected{% endif %}>{{status}}</option>{% endfor %}</select></td>
+<td><input name="problem_description" class="form-control" value="{{pc.problem_description}}"></td><td><button class="btn btn-search btn-sm">Save</button></td>
+</form></tr>{% endfor %}
+</tbody></table></div></div>
+<div class="admin-card mt-4">
+<h3>📊 PC Availability Analytics</h3>
+<div style="max-width:420px;margin:auto;">
+<canvas id="pcChart"></canvas>
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+new Chart(document.getElementById('pcChart'), {
+ type: 'doughnut',
+ data: {
+  labels: ['Available','Faulty','In Use','Maintenance'],
+  datasets: [{
+   data: [{{chart.available or 0}}, {{chart.faulty or 0}}, {{chart.in_use or 0}}, {{chart.maintenance or 0}}]
+  }]
+ },
+ options: {
+  responsive: true,
+  plugins: { legend: { position: 'bottom' } }
+ }
+});
+</script>
+
+<div class="admin-card mt-5">
+<h3>🚨 Fault Reports</h3>
+<div class="table-responsive"><table class="table align-middle modern-table"><thead><tr><th>PC</th><th>Student</th><th>Email</th><th>Issue</th><th>Status</th><th></th></tr></thead><tbody>
+{% for report in reports %}<tr><td>{{report.pc_number}}</td><td>{{report.student_name}}</td><td>{{report.student_email}}</td><td>{{report.description}}</td><td>{{report.report_status}}</td><td>{% if report.report_status != 'Resolved' %}<form method="POST" action="{{url_for('resolve_report', report_id=report.id)}}"><button class="btn btn-success btn-sm">Resolve</button></form>{% else %}<span class="badge bg-success">Resolved</span>{% endif %}</td></tr>{% else %}<tr><td colspan="6" class="text-center">No fault reports available</td></tr>{% endfor %}
+</tbody></table></div></div>
+{% endblock %}
